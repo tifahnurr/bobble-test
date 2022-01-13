@@ -43,6 +43,7 @@ export default class PreloadScene extends Phaser.Scene {
       frameHeight: 180
     });
     this.load.image("arrow", "arrow.png");
+    this.load.image("replay", "Replay.png");
   }
 
   create(): void {

@@ -20,9 +20,9 @@ export const config: PhaserConfig = {
   physics: {
     default: "arcade",
     arcade: {
-      debug: true,
+      debug: false,
     },
   },
-  backgroundColor: "#257392",
+  backgroundColor: "#555555",
   scene: [PreloadScene, TitleScene, LevelScene, GameScene],
 };
