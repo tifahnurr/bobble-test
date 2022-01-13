@@ -20,11 +20,11 @@ export default class Bubble extends Phaser.Physics.Arcade.Sprite {
         this.setTint(colorMapping[colorCode]);
         this.setInteractive();
         scene.physics.add.existing(this);
-        this.setScale(0.66)
+        this.setScale(0.7)
         this.setCollideWorldBounds(true);
         this.setBounce(1, 1);
-        this.setSize(110, 110)
-        this.setOffset(35, 35);
+        this.setSize(100, 100);
+        this.setOffset(40, 40);
         this.setImmovable();
         this.anims.create({
             key: "pop",
@@ -48,6 +48,7 @@ export default class Bubble extends Phaser.Physics.Arcade.Sprite {
     pop(): void {
         this.anims.play("pop");
         this.isPopped = true;
+        this.scene.events.emit("addscore", 50);
         this.on("animationcomplete", () => {
             this.kill();
         });
@@ -59,10 +60,10 @@ export default class Bubble extends Phaser.Physics.Arcade.Sprite {
         this.isPopped = true;
         this.setVelocityY(Phaser.Math.Between(900, 1300));
         this.setCollideWorldBounds(false);
+        this.scene.events.emit("addscore", 50);
         this.scene.time.addEvent({
             delay: 1500, loop: false,
             callback: () => {
-
                 this.kill();
             }
         });

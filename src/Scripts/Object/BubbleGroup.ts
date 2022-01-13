@@ -14,6 +14,7 @@ export default class BubbleGroup {
     private isLongRowFirst: Boolean;
     private scene: Phaser.Scene;
     private playerBubble;
+
     constructor(scene, sizeX, sizeY, playerBubble) {
         this.sizeX = sizeX;
         this.sizeY = sizeY;
@@ -27,7 +28,7 @@ export default class BubbleGroup {
             for (let j = 0; j < (i % 2 ? sizeX - 1 : sizeX); j++) {
                 let colorCode = Phaser.Math.Between(0, 7);
                 if (i < sizeY) {
-                    let newBubble = new Bubble(scene, (j * 80) + (i % 2 ? 40 : 0) + 20, (i * 70) + 50, this, j, i, colorCode);
+                    let newBubble = new Bubble(scene, (j * 85) + (i % 2 ? 40 : 0), (i * 75) + 50, this, j, i, colorCode);
                     this.physicsGroup.add(newBubble);
                     row.push(newBubble);
 
@@ -41,27 +42,6 @@ export default class BubbleGroup {
     }
     collide(overlappedBubble, playerBubble: Bubble): void {
         let index = this.getClosestNeighbor(overlappedBubble, playerBubble);
-        // if(index.y >= 12) {
-        //     console.log(index.y);
-        //     // this.scene.events.emit("gameover");
-        //     return null;
-        // }
-        // if (index.x < 0) {
-        //     index.x = 0;
-        //     if (this.getBubble(index.x, index.y)) {
-        //         index.y += 1;
-        //     }
-        // }
-        // else if (index.x >= this.group[index.y].length) {
-        //     index.x = this.group[index.y].length - 1;
-        //     if (this.getBubble(index.x, index.y)) {
-        //         index.y += 1;
-        //     }
-        // }
-        // // console.log(index.x);
-        // // while (this.getBubble(index.x, index.y) !== null) {
-        // //     index = this.calculateIndex(playerBubble.getTopCenter().x + (index.x >= this.group[index.y].length ? (-75) : Phaser.Math.Between(-40, 40)), playerBubble.getTopCenter().y + Phaser.Math.Between(-60, 60));
-        // // }
         console.log(index);
         if (overlappedBubble.getIsColliding()) return null
         if (index.x < 0) return null
@@ -73,8 +53,17 @@ export default class BubbleGroup {
         this.scene.physics.add.overlap(newBubble, this.playerBubble, this.collide, null, this);
         newBubble.checkAround();
         playerBubble.setVelocity(0, 0);
-        playerBubble.x = getResolution().width / 2;
-        playerBubble.y = getResolution().height * 4 / 5;
+        playerBubble.setVisible(false);
+        playerBubble.setX(1000);
+        playerBubble.setY(1000);
+        this.scene.time.addEvent({
+            delay: 100, loop: false,
+            callback: () => {
+                playerBubble.x = getResolution().width / 2;
+                playerBubble.y = getResolution().height * 4 / 5;
+                playerBubble.setVisible(true)
+            }
+        })
         this.updatePosition();
         playerBubble.randomizeColor(this.group);
         overlappedBubble.setIsColliding(false);
@@ -90,7 +79,7 @@ export default class BubbleGroup {
             let x = bubbleA.getIndex().x + neighborOffset[0];
             let y = bubbleA.getIndex().y + neighborOffset[1];
             console.log(this.getBubble(x, y));
-            if (!this.getBubble(x, y) && x >= 0 && x < this.getRow(y).length) {
+            if (!this.getBubble(x, y) && x >= 0 && y > 0 && x < this.getRow(y).length) {
                 console.log(x);
                 console.log(y);
                 let position = this.calculatePosition(x, y);
@@ -108,8 +97,8 @@ export default class BubbleGroup {
     }
 
     calculateIndex(posX, posY): any {
-        let y = Math.floor((posY - 50) / 70);
-        let x = Math.floor((posX - 20 - (this.isLongRowFirst? (y % 2 ? 40 : 0) : (y % 2 ? 0 : 40))) / 80);
+        let y = Math.floor((posY - 50) / 75);
+        let x = Math.floor((posX - (this.isLongRowFirst? (y % 2 ? 40 : 0) : (y % 2 ? 0 : 40))) / 85);
         return {x: x, y: y};
     }
 
@@ -124,8 +113,8 @@ export default class BubbleGroup {
     }
 
     calculatePosition(x, y): any {
-        const posX = (x * 80) + (this.isLongRowFirst? (y % 2 ? 40 : 0) : (y % 2 ? 0 : 40)) + 20;
-        const posY = (y * 70) + 50;
+        const posX = (x * 85) + (this.isLongRowFirst? (y % 2 ? 40 : 0) : (y % 2 ? 0 : 40));
+        const posY = (y * 75) + 50;
         return ({x: posX, y: posY})
     }
 

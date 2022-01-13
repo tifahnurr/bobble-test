@@ -42,6 +42,7 @@ export default class PreloadScene extends Phaser.Scene {
       frameWidth: 180,
       frameHeight: 180
     });
+    this.load.image("arrow", "arrow.png");
   }
 
   create(): void {
