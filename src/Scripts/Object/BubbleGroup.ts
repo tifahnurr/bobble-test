@@ -48,13 +48,14 @@ export default class BubbleGroup {
         console.log(index);
         if (overlappedBubble && overlappedBubble.getIsColliding()) return null
         if (index.x < 0) return null
-        if (playerBubble.y >= (getResolution().height * 4 / 5) - 100 ) return null;
+        if (playerBubble.y >= (getResolution().height * 4 / 5) - 120  || playerBubble.active === false) return null;
         // overlappedBubble.setProcessed(true);
         const position = this.calculatePosition(index.x, index.y);
         // let newBubble = new Bubble(this.scene, position.x, position.y, this, index.x, index.y, playerBubble.getColorCode());
         let newBubble = this.createBubble(position.x, position.y, index.x, index.y, playerBubble.getColorCode());
         this.group[index.y][index.x] = newBubble;
         this.scene.physics.add.overlap(newBubble, this.playerBubble, this.collide, null, this);
+        playerBubble.setActive(false);
         newBubble.checkAround();
         playerBubble.setVisible(false);
         playerBubble.setX(1000);
@@ -66,6 +67,7 @@ export default class BubbleGroup {
                 playerBubble.y = getResolution().height * 4 / 5;
                 playerBubble.setVelocity(0, 0);
                 playerBubble.setVisible(true)
+                playerBubble.setActive(true);
             }
         })
         this.updatePosition();

@@ -43,22 +43,6 @@ export default class GameScene extends Phaser.Scene {
     this.bubbleGroup = new BubbleGroup(this, 8, 5, this.currentBubble);
     this.scoreText = new ScoreText(this);
     this.fpsText = new FpsText(this);
-    this.input.keyboard.on("keydown", () => {
-      if (!this.isAdding) {
-        this.isAdding = true;
-        this.time.addEvent({
-          delay: 500,
-          loop: false,
-          callback: () => {
-            if (!this.gameOver) {
-              this.bubbleGroup.addRow();
-              this.isAdding = false;
-              this.checkGameover();
-            }
-          },
-        });
-      }
-    });
     this.input.on("pointerup", (pointer) => {
       if (!this.gameOver) {
         let angle = (Phaser.Math.Angle.Between(this.arrow.x, this.arrow.y, pointer.x, pointer.y) * 180 / Math.PI) + 90;
@@ -86,6 +70,14 @@ export default class GameScene extends Phaser.Scene {
     this.currentBubble.randomizeColor(this.bubbleGroup.group);
     this.events.off("gameover");
     this.events.off("addscore")
+    this.time.addEvent({
+      delay: 25000, loop: true,
+      callback: () => {
+        if (!this.gameOver) {
+          this.bubbleGroup.addRow();
+        }
+      }
+    })
     this.events.once("gameover", this.runGameOver, this);
     this.events.on("addscore", this.addScore, this);
     this.bg = this.sound.add("bg")
@@ -106,7 +98,6 @@ export default class GameScene extends Phaser.Scene {
   }
 
   runGameOver(): void {
-    console.log("gameover");
     this.add.rectangle(getResolution().width / 2, getResolution().height / 2, getResolution().width, getResolution().height, 0x000000, 0.5)
     this.gameOver = true;
     this.scoreText.setDepth(1);
