@@ -10,7 +10,7 @@ module.exports = {
         exclude: /node_modules/,
       },
       {
-        test: /\.(png|jp(e*)g|svg|ogg|mp3)$/,
+        test: /\.(png|jp(e*)g|svg|ogg|mp3|wav)$/,
         use: [
           {
             loader: "url-loader",
