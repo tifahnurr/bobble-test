@@ -1,6 +1,6 @@
 import * as Phaser from "phaser";
 
-const colorMapping = [0xe74c3c, 0xc39bd3, 0x7fb3d5, 0x138d75, 0x79e79f, 0xe59866, 0x000000]
+const colorMapping = [0xe74c3c, 0xc39bd3, 0x7fb3d5, 0x138d75, 0x79e79f, 0xe59866, 0xcccc22]
 export default class Bubble extends Phaser.Physics.Arcade.Sprite {
     private colorCode;
     private isPopped = false;
@@ -9,13 +9,15 @@ export default class Bubble extends Phaser.Physics.Arcade.Sprite {
     private group;
     private processed = false;
     public isColliding = false;
+    private popAudio;
+    private collisionAudio;
     constructor(scene:Phaser.Scene, x, y, group, indexX, indexY, colorCode) {
         super(scene, x, y, 'bubble');
         this.indexX = indexX;
         this.indexY = indexY;
         this.group = group;
         this.scene.add.existing(this);
-        this.setOrigin(0, 0)
+        this.setOrigin(0.5, 0.5)
         this.colorCode = colorCode;
         this.setTint(colorMapping[colorCode]);
         this.setInteractive();
@@ -35,11 +37,25 @@ export default class Bubble extends Phaser.Physics.Arcade.Sprite {
             frameRate: 20,
             repeat: 0,
           });
-
+        this.popAudio = this.scene.sound.add("pop");
+        this.collisionAudio = this.scene.sound.add("collision");
         //   this.on("pointerdown", function () {
         //     this.checkAround();
         //   });
         // this.scene.add.sprite(x, y, "bubble");
+    }
+    revive(posX, posY, indexX, indexY, colorCode) {
+		this.setActive(true)
+        this.setAlpha(1);
+        this.setScale(0.7);
+		this.setVisible(true)
+        this.setProcessed(false);
+        this.x = posX;
+        this.y = posY;
+        this.isPopped = false;
+        this.setTexture("bubble", 0);
+        this.setIndex(indexX, indexY);
+        this.setColor(colorCode);
     }
     setIndex(x, y): void {
         this.indexX = x;
@@ -49,6 +65,7 @@ export default class Bubble extends Phaser.Physics.Arcade.Sprite {
         this.anims.play("pop");
         this.isPopped = true;
         this.scene.events.emit("addscore", 50);
+        this.group.remove(this.indexX, this.indexY);
         this.on("animationcomplete", () => {
             this.kill();
         });
@@ -60,9 +77,10 @@ export default class Bubble extends Phaser.Physics.Arcade.Sprite {
         this.isPopped = true;
         this.setVelocityY(Phaser.Math.Between(900, 1300));
         this.setCollideWorldBounds(false);
-        this.scene.events.emit("addscore", 50);
+        this.scene.events.emit("addscore", 75);
+        this.group.remove(this.indexX, this.indexY);
         this.scene.time.addEvent({
-            delay: 1500, loop: false,
+            delay: 2000, loop: false,
             callback: () => {
                 this.kill();
             }
@@ -75,9 +93,12 @@ export default class Bubble extends Phaser.Physics.Arcade.Sprite {
         let around = this.group.checkAround(this.indexX, this.indexY, this.colorCode)
         // console.log(around);
         if (around.length >= 3) {
+            this.popAudio.play();
             around.forEach((bubble) => {
                 bubble.pop();
             })
+        } else {
+            this.collisionAudio.play();
         }
         this.group.resetProcessed();
         let fallingClusters = this.group.checkFloating();
@@ -98,8 +119,9 @@ export default class Bubble extends Phaser.Physics.Arcade.Sprite {
         this.setX(-100);
         this.setY(-100);
         this.setVelocity(0, 0);
-        this.destroy();
-        this.group.remove(this.indexX, this.indexY);
+        this.setActive(false);
+        this.setAlpha(0);
+        this.group.killAndHide(this);
     }
     getRowIndex(): number {
         return this.indexY;
@@ -131,4 +153,8 @@ export default class Bubble extends Phaser.Physics.Arcade.Sprite {
     setIsColliding(status): any {
         this.isColliding = status;
     }
-}
+    setColor(colorCode): void {
+        this.colorCode = colorCode;
+        this.setTint(colorMapping[colorCode]);
+    }
+ }
