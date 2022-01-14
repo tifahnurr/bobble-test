@@ -4,10 +4,10 @@
   "description": "starting scene",
   "main": "app.js",
   "scripts": {
-    "build": "webpack-dev-server",
+    "build": "webpack --mode=production",
     "dev": "webpack --watch",
     "serve": "live-server --port=8085",
-    "start": "concurrently --kill-others \"npm run dev\" \"npm run serve\""
+    "start": "node server.js"
   },
   "author": "kevin sutrisno",
   "license": "MIT",
