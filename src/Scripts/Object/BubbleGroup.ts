@@ -227,7 +227,6 @@ export default class BubbleGroup {
             console.log("recycle");
             currentBubble.revive(posX, posY, indexX, indexY, colorCode);
         } else {
-            console.log("new bubble");
             currentBubble = new Bubble(this.scene, posX, posY, this, indexX, indexY, colorCode);
             this.scene.physics.add.overlap(currentBubble, this.playerBubble, this.collide, null, this);
             this.physicsGroup.add(currentBubble);
