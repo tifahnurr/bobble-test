@@ -33,7 +33,7 @@ export default class BubbleGroup {
                     let newBubble = this.createBubble((j * 85) + (i % 2 ? 110 : 70), (i * 75) + 100, j, i, colorCode);
                     row.push(newBubble);
 
-                    this.scene.physics.add.overlap(newBubble, this.playerBubble, this.collide, null, this);
+                    // this.scene.physics.add.overlap(newBubble, this.playerBubble, this.collide, null, this);
                 } else {
                     row.push(null);
                 }
@@ -45,7 +45,6 @@ export default class BubbleGroup {
         let index = overlappedBubble ?
             this.getClosestNeighbor(overlappedBubble, playerBubble) :
             this.calculateIndex(playerBubble.x, playerBubble.y);
-        console.log(index);
         if (overlappedBubble && overlappedBubble.getIsColliding()) return null
         if (index.x < 0) return null
         if (playerBubble.y >= (getResolution().height * 4 / 5) - 120  || playerBubble.active === false) return null;
@@ -54,7 +53,7 @@ export default class BubbleGroup {
         // let newBubble = new Bubble(this.scene, position.x, position.y, this, index.x, index.y, playerBubble.getColorCode());
         let newBubble = this.createBubble(position.x, position.y, index.x, index.y, playerBubble.getColorCode());
         this.group[index.y][index.x] = newBubble;
-        this.scene.physics.add.overlap(newBubble, this.playerBubble, this.collide, null, this);
+        // this.scene.physics.add.overlap(newBubble, this.playerBubble, this.collide, null, this);
         playerBubble.setActive(false);
         newBubble.checkAround();
         playerBubble.setVisible(false);
@@ -76,7 +75,6 @@ export default class BubbleGroup {
     }
 
     getClosestNeighbor(bubbleA, bubbleB) {
-        console.log("closestNeighbor");
         const offset = (this.isLongRowFirst ? bubbleA.getIndex().y % 2 : (bubbleA.getIndex().y + 1) % 2)
         const bubbleBPos = {x: bubbleB.getCenter().x, y: bubbleB.getCenter().y};
         let nearestNeighbor = [];
@@ -141,7 +139,7 @@ export default class BubbleGroup {
             let newBubble = this.createBubble(position.x, position.y, i, 0, colorCode);
             // let newBubble = new Bubble(this.scene, position.x, position.y, this, i, 0, colorCode);
             // this.physicsGroup.add(newBubble);
-            this.scene.physics.add.overlap(newBubble, this.playerBubble, this.collide, null, this);
+            // this.scene.physics.add.overlap(newBubble, this.playerBubble, this.collide, null, this);
             row.push(newBubble);
         }
         this.group.unshift(row);
@@ -224,7 +222,6 @@ export default class BubbleGroup {
     }
 
     createBubble(posX, posY, indexX, indexY, colorCode): Bubble {
-        console.log(this.physicsGroup.getChildren());
         let currentBubble:Bubble = this.physicsGroup.getFirstDead(false);
         if (currentBubble) {
             console.log("recycle");
@@ -232,6 +229,7 @@ export default class BubbleGroup {
         } else {
             console.log("new bubble");
             currentBubble = new Bubble(this.scene, posX, posY, this, indexX, indexY, colorCode);
+            this.scene.physics.add.overlap(currentBubble, this.playerBubble, this.collide, null, this);
             this.physicsGroup.add(currentBubble);
         }
         // this.group[indexY][indexX] = currentBubble;
@@ -240,5 +238,11 @@ export default class BubbleGroup {
 
     killAndHide(bubble: Bubble): void {
         this.physicsGroup.killAndHide(bubble);
+    }
+    destroy(): void {
+        this.physicsGroup.getChildren().forEach((elmt) => {
+            elmt.destroy();
+        });
+        this.physicsGroup.destroy();
     }
 }

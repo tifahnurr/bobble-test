@@ -128,7 +128,6 @@ export default class Bubble extends Phaser.Physics.Arcade.Sprite {
     }
     randomizeColor(group = this.group): void {
         let existingColor = [];
-        console.log(group);
         group.forEach((row) => {
             row.forEach((bubble: Bubble) => {
                     if (bubble !== null) {
