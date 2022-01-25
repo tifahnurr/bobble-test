@@ -40,14 +40,14 @@ export default class PreloadScene extends Phaser.Scene {
     this.load.setPath("src/Assets");
     this.load.spritesheet("bubble", "bubblesprite.png", {
       frameWidth: 180,
-      frameHeight: 180
+      frameHeight: 180,
     });
     this.load.image("arrow", "arrow.png");
     this.load.image("replay", "Replay.png");
     this.load.image("background", "background.png");
     this.load.audio("pop", "sounds/pop.wav");
     this.load.audio("collision", "sounds/snap.wav");
-    this.load.audio("bg", "sounds/bg.wav")
+    this.load.audio("bg", "sounds/bg.wav");
   }
 
   create(): void {
