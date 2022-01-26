@@ -14,7 +14,6 @@ export default class GameScene extends Phaser.Scene {
   private gameOver: boolean;
   private win: boolean;
   private bubbleGroup: BubbleGroup;
-  private isAdding = false;
   private currentBubble: Bubble;
   private nextBubble: Bubble;
   private arrow:Phaser.GameObjects.Sprite;
@@ -42,6 +41,7 @@ export default class GameScene extends Phaser.Scene {
     this.arrow = this.physics.add.sprite(getResolution().width / 2, getResolution().height * 4 / 5, "arrow").setOrigin(0.5, 0.8);
     this.time.timeScale = 1;
     this.currentBubble = new Bubble(this, getResolution().width / 2, getResolution().height * 4 / 5, null, null, null, Phaser.Math.Between(0, 6));
+    this.nextBubble = new Bubble(this, getResolution().width * 4 / 5, getResolution().height * 4 / 5, null, null, null, Phaser.Math.Between(0, 6));
     // this.currentBubble.setScale(0.66)
     this.currentBubble.setOrigin(0.5, 0.5)
     this.gameOver = false;
@@ -56,16 +56,18 @@ export default class GameScene extends Phaser.Scene {
     this.input.on("pointerup", (pointer) => {
       if (!this.gameOver) {
         let angle = (Phaser.Math.Angle.Between(this.arrow.x, this.arrow.y, pointer.x, pointer.y) * 180 / Math.PI) + 90;
-        if (angle <= 90 && this.currentBubble.body.velocity.x === 0 && this.currentBubble.body.velocity.y === 0) {
+        if (angle <= 86 && this.currentBubble.body.velocity.x === 0 && this.currentBubble.body.velocity.y === 0) {
           this.physics.moveToObject(this.currentBubble, pointer, 2000);
           this.checkGameover();
+        } else if (this.currentBubble.body.velocity.x === 0 && this.currentBubble.body.velocity.y === 0) {
+          this.exchangeBubble();
         }
       }
     })
     this.input.on('pointermove', function (pointer) {
       if (!this.gameOver) {
         let angle = (Phaser.Math.Angle.Between(this.arrow.x, this.arrow.y, pointer.x, pointer.y) * 180 / Math.PI) + 90;
-        if (angle > 90) {
+        if (angle > 87) {
           this.arrow.setAngle(0);
           this.guideLine.onPointerMove({x: getResolution().width / 2, y: 0});
         }
@@ -77,8 +79,7 @@ export default class GameScene extends Phaser.Scene {
     }, this);
 
     this.currentBubble.randomizeColor(this.bubbleGroup.group);
-    this.events.off("gameover");
-    this.events.off("addscore");
+    this.nextBubble.randomizeColor(this.bubbleGroup.group);
     this.time.addEvent({
       delay: 25000, loop: true,
       callback: () => {
@@ -89,6 +90,8 @@ export default class GameScene extends Phaser.Scene {
     })
     this.events.once("gameover", this.runGameOver, this);
     this.events.on("addscore", this.addScore, this);
+    this.events.on("nextmove", this.nextMove, this);
+    this.events.on("randomizebubble", this.randomizeColor, this);
   }
 
   update(): void {
@@ -104,6 +107,10 @@ export default class GameScene extends Phaser.Scene {
 
   runGameOver(): void {
     console.log("gameover");
+    this.events.off("gameover");
+    this.events.off("addscore");
+    this.events.off("nextmove");
+    this.events.off("randomizebubble");
     this.time.timeScale = 0
     this.add.rectangle(getResolution().width / 2, getResolution().height / 2, getResolution().width, getResolution().height, 0x000000, 0.5)
     this.gameOver = true;
@@ -117,6 +124,7 @@ export default class GameScene extends Phaser.Scene {
       this.bubbleGroup.destroy();
       delete this.bubbleGroup;
       this.bg.stop();
+      this.registry.destroy();
       this.scene.start("GameScene");
     }, this);
     // this.scene.restart();
@@ -124,6 +132,22 @@ export default class GameScene extends Phaser.Scene {
 
   addScore(addition): void {
     this.scoreText.add(addition)
+  }
+
+  exchangeBubble(): void {
+    const currentBubbleColor = this.currentBubble.getColorCode();
+    this.currentBubble.setColor(this.nextBubble.getColorCode());
+    this.nextBubble.setColor(currentBubbleColor);
+  }
+
+  nextMove(): void {
+    this.currentBubble.setColor(this.nextBubble.getColorCode());
+    this.nextBubble.randomizeColor(this.bubbleGroup.group, true); 
+  }
+
+  randomizeColor(): void {
+    this.currentBubble.randomizeColor(this.bubbleGroup.group);
+    this.nextBubble.randomizeColor(this.bubbleGroup.group);
   }
 
   checkGameover(): void {
@@ -135,7 +159,7 @@ export default class GameScene extends Phaser.Scene {
           this.win = true;
           this.events.emit("gameover");
         }
-        this.bubbleGroup.getRow(10).forEach((elm)=> {
+          this.bubbleGroup.getRow(10).forEach((elm)=> {
           if (elm !== null) this.events.emit("gameover");
         })
       }

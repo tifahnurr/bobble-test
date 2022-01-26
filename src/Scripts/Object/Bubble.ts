@@ -106,7 +106,8 @@ export default class Bubble extends Phaser.Physics.Arcade.Sprite {
             row.forEach((element) => {
                 element.fall();
             })
-        })
+        });
+        this.scene.events.emit("randomizebubble");
         this.group.resetProcessed();
     }
     setProcessed(status): void {
@@ -126,7 +127,7 @@ export default class Bubble extends Phaser.Physics.Arcade.Sprite {
     getRowIndex(): number {
         return this.indexY;
     }
-    randomizeColor(group = this.group): void {
+    randomizeColor(group = this.group, force = false): void {
         let existingColor = [];
         group.forEach((row) => {
             row.forEach((bubble: Bubble) => {
@@ -138,9 +139,12 @@ export default class Bubble extends Phaser.Physics.Arcade.Sprite {
                 }
             })
         })
-        let randomColor = existingColor[Phaser.Math.Between(0, existingColor.length - 1)]
-        this.colorCode = randomColor;
-        this.setTint(colorMapping[this.colorCode]);
+        if (existingColor.includes(this.colorCode) && !force) return null;
+        // if (force || !existingColor.includes(this.colorCode)) {
+          let randomColor = existingColor[Phaser.Math.Between(0, existingColor.length - 1)]
+          this.colorCode = randomColor;
+          this.setTint(colorMapping[this.colorCode]);
+        // }
 
     }
     getIndex(): any {

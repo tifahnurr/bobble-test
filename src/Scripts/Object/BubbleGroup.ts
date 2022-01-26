@@ -6,10 +6,9 @@ import { getResolution } from "../Util/Util";
 const neighborsoffsets = [[[1, 0], [0, 1], [-1, 1], [-1, 0], [-1, -1], [0, -1]], // Even row tiles
                         [[1, 0], [1, 1], [0, 1], [-1, 0], [0, -1], [1, -1]]];  // Odd row tiles
 export default class BubbleGroup {
-    public group: Array<Array<Bubble>>;
+    public group: Array<Array<Bubble | null>>;
     private physicsGroup: Phaser.GameObjects.Group;
     private sizeX: number;
-    private sizeY: number;
     private maxRow = 14;
     private isLongRowFirst: Boolean;
     private scene: Phaser.Scene;
@@ -17,7 +16,6 @@ export default class BubbleGroup {
 
     constructor(scene, sizeX, sizeY, playerBubble) {
         this.sizeX = sizeX;
-        this.sizeY = sizeY;
         this.scene = scene;
         this.group = [];
         this.isLongRowFirst = true;
@@ -70,7 +68,8 @@ export default class BubbleGroup {
             }
         })
         this.updatePosition();
-        playerBubble.randomizeColor(this.group);
+        // playerBubble.randomizeColor(this.group);
+        this.scene.events.emit("nextmove");
         if (overlappedBubble) overlappedBubble.setIsColliding(false);
     }
 
@@ -145,7 +144,6 @@ export default class BubbleGroup {
         this.group.unshift(row);
         this.group.pop();
         this.updatePosition();
-        this.sizeY += 1;
     }
 
     checkAround(indexX, indexY, colorCode = null): Array<Bubble> {
