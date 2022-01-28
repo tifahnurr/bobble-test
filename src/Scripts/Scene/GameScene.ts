@@ -25,9 +25,7 @@ export default class GameScene extends Phaser.Scene {
   }
 
   preload(): void {
-    if (!this.bg) {
-      this.bg = this.sound.add("bg")
-    }
+    this.bg = this.sound.add("bg")
     this.bg.loop = true;
     if (!this.bg.isPlaying) {
       this.bg.play();
@@ -78,8 +76,8 @@ export default class GameScene extends Phaser.Scene {
       }
     }, this);
 
-    this.currentBubble.randomizeColor(this.bubbleGroup.group);
-    this.nextBubble.randomizeColor(this.bubbleGroup.group);
+    this.currentBubble.randomizeColor(this.bubbleGroup.getReachableCluster());
+    this.nextBubble.randomizeColor(this.bubbleGroup.getReachableCluster());
     this.time.addEvent({
       delay: 25000, loop: true,
       callback: () => {
@@ -125,6 +123,7 @@ export default class GameScene extends Phaser.Scene {
       delete this.bubbleGroup;
       this.bg.stop();
       this.registry.destroy();
+      this.sound.removeAll();
       this.scene.start("GameScene");
     }, this);
     // this.scene.restart();
@@ -142,7 +141,7 @@ export default class GameScene extends Phaser.Scene {
 
   nextMove(): void {
     this.currentBubble.setColor(this.nextBubble.getColorCode());
-    this.nextBubble.randomizeColor(this.bubbleGroup.group, true); 
+    this.nextBubble.randomizeColor(this.bubbleGroup.getReachableCluster(), true);
   }
 
   randomizeColor(): void {

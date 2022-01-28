@@ -146,15 +146,15 @@ export default class BubbleGroup {
         this.updatePosition();
     }
 
-    checkAround(indexX, indexY, colorCode = null): Array<Bubble> {
+    checkAround(indexX, indexY, colorCode = null, checkNull = false): Array<Bubble> {
         let offset = (this.isLongRowFirst ? indexY % 2 : (indexY + 1) % 2)
-        let totalSimilarNeighbor = 1;
         let bubble = this.getBubble(indexX, indexY);
         let neighbors = [bubble];
         bubble.setProcessed(true);
         neighborsoffsets[offset].forEach((neighborOffset) => {
-            let currentBubble = this.getBubble(indexX + neighborOffset[0], indexY + neighborOffset[1])
-            if (currentBubble && ((colorCode !== null && currentBubble.getColorCode() === colorCode) || colorCode === null) && !currentBubble.getProcessed() && !currentBubble.getIsPopped()) {
+            let currentBubble = this.getBubble(indexX + neighborOffset[0], indexY + neighborOffset[1]);
+            if (currentBubble && ((colorCode !== null && currentBubble.getColorCode() === colorCode) || colorCode === null) 
+                && !currentBubble.getProcessed() && !currentBubble.getIsPopped()) {
                 neighbors = neighbors.concat(this.checkAround(indexX + neighborOffset[0], indexY + neighborOffset[1], colorCode))
                 // totalSimilarNeighbor += this.checkAround(indexX + neighborOffset[0], indexY + neighborOffset[1], colorCode).length;
             }
@@ -162,15 +162,101 @@ export default class BubbleGroup {
         return neighbors;
     }
 
+    getPossibleColor(): Array<Bubble> {
+      let clusters = [];
+      this.group.forEach((row, indexY) => {
+        row.forEach((element, indexX) => {
+            if (element && !element.getProcessed()) {
+                let neighbors = this.checkAround(indexX, indexY, element.getColorCode());
+                clusters.push(neighbors);
+            }
+        })
+      })
+      this.resetProcessed();
+      let lowestCluster = [];
+      let lowestIndex = [];
+      clusters.forEach((cluster) => {
+        cluster.forEach((element) => {
+          let index = element.getIndex();
+          if (lowestIndex[index.x]) {
+            if (index.y > lowestIndex[index.x]) {
+              lowestIndex[index.x] = index.y;
+              lowestCluster[index.x] = cluster;
+            }
+          } else {
+            lowestIndex[index.x] = index.y;
+            lowestCluster[index.x] = cluster;
+          }
+        })
+      })
+      const lengths = lowestCluster.map(a=>a.length);
+      const maxLength = Math.max(...lengths);
+      if (maxLength > 1) {
+        let possibleCluster = [];
+        lowestCluster.forEach((cluster) => {
+          if (cluster.length > 1) {
+            possibleCluster.push(cluster);
+          }
+        })
+        return possibleCluster;
+      } else {
+        return lowestCluster;
+      }
+    }
+
+    getReachableCluster(): any {
+      let groupCopy = [];
+      this.group.forEach((row, rowIndex) => {
+        groupCopy.push([]);
+        row.forEach((element) => {
+          if (element) {
+            groupCopy[rowIndex].push(2);
+          } else {
+            groupCopy[rowIndex].push(null);
+          }
+        })
+      })
+      let index = groupCopy.length - 1;
+      let bubbleNeighbor = [];
+      this.checkAroundNull(0, index, groupCopy, bubbleNeighbor);
+      let clusters = [];
+      bubbleNeighbor.forEach((bubble) => {
+        clusters.push(this.checkAround(bubble.getIndex().x, bubble.getIndex().y, bubble.getColorCode()));
+      })
+      this.resetProcessed();
+      return clusters;
+    }
+
+    checkAroundNull(indexX, indexY, groupCopy, bubbleNeighbor): any {
+      let offset = (this.isLongRowFirst ? indexY % 2 : (indexY + 1) % 2)
+      // let bubble = this.getBubble(indexX, indexY);
+      let neighbors = [{x: indexX, y: indexY}];
+      groupCopy[indexY][indexX] = 1;
+      neighborsoffsets[offset].forEach((neighborOffset) => {
+        let currentIndexX = indexX + neighborOffset[0];
+        let currentIndexY = indexY + neighborOffset[1];
+        if (currentIndexY >= 0 && currentIndexY < this.maxRow  && currentIndexX < groupCopy[currentIndexY].length && currentIndexX >= 0) {
+          let currentBubble = groupCopy[indexY + neighborOffset[1]][indexX + neighborOffset[0]];
+          // this.getBubble(indexX + neighborOffset[0], indexY + neighborOffset[1]);
+          if (currentBubble === null) {
+            neighbors.concat(this.checkAroundNull(indexX + neighborOffset[0], indexY + neighborOffset[1], groupCopy, bubbleNeighbor));
+          } else if (currentBubble === 2) {
+            groupCopy[currentIndexY][currentIndexX] = 3
+            bubbleNeighbor.push(this.getBubble(indexX + neighborOffset[0], indexY + neighborOffset[1]));
+          }
+        }
+      })
+      return neighbors;
+    }
+
     resetProcessed(): void {
-        this.group.forEach((row) => {
-            row.forEach((bubble) => {
-                if (!bubble) return;
-                if (bubble.getIsPopped()) return;
-                bubble.setProcessed(false);
-            })
-        });
-        this.playerBubble.randomizeColor(this.group);
+      this.group.forEach((row) => {
+          row.forEach((bubble) => {
+              if (!bubble) return;
+              if (bubble.getIsPopped()) return;
+              bubble.setProcessed(false);
+          })
+      });
     }
 
     checkFloating(): any {
